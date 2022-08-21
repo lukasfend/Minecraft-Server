@@ -21,6 +21,8 @@ public:
 	static void writeVarInt(int32_t value, char* &buffer, uint16_t &bufferSize);
 	static void writeString(char* value, uint16_t byteLength, char*& buffer, uint16_t& bufferSize);
 
+	static uint32_t getVarIntLength(int32_t value);
+
 	static uint16_t swapEndianness(uint16_t value);
 };
 

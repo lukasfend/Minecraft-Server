@@ -3,14 +3,16 @@
 #include "PacketTypes.h"
 #include "Config.h"
 #include <iostream>
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;
+#include "DumpHex.h"
+#include <string>
+//#include <nlohmann/json.hpp>
+#pragma execution_character_set("utf-8")
+//using json = nlohmann::json;
 
 
 void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clientSocket)
 {
-	std::cout << "Reading new Packet..." << std::endl;
+	std::cout << "------- Reading new Packet...-------" << std::endl;
 
 	uint8_t state = 0;
 	char* responseBuffer[BUFFER_SIZE];
@@ -54,7 +56,7 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clie
 			{
 				case 0x00:
 					{
-						json response = {
+						/*json response = {
 							{"version", {
 								{"name", "1.18.2"},
 								{"protocol", 758},
@@ -70,8 +72,19 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clie
 							}},
 							{"favicon", "data:image/png;base64;iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAYklEQVR42u3QAQ0AAAgDIN8/9M3hhAhk2s5jESBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAu5bgEm/gfv5CP0AAAAASUVORK5CYII="},
 							{"previewsChat", true},
-						};	
+						};*/
 						// TODO send string
+						std::string json = "{\"description\":{\"text\":\"A Minecraft Server\"},\"players\":{\"max\":20,\"online\":0},\"version\":{\"name\":\"1.18.2\",\"protocol\":758}}";
+						char* jsonBuffer = const_cast<char*>(json.c_str());
+						const uint16_t jsonBufferLength = strlen(jsonBuffer);
+
+						char* stringBuffer = new char[jsonBufferLength];
+						uint16_t stringBufferSize = 0;
+						ZeroMemory(stringBuffer, jsonBufferLength);
+						PacketTypes::writeString(jsonBuffer, jsonBufferLength, stringBuffer, stringBufferSize);
+						printf("\n--------- STRING BUFFER: ---------\n");
+						DumpHex(stringBuffer, stringBufferSize);
+						PacketHandler::SendPacket(0x00, stringBuffer, stringBufferSize, clientSocket);
 						break;
 					}
 				default:
@@ -88,7 +101,41 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clie
 	}
 }
 
-void PacketHandler::SendPacket(char* buffer, uint16_t bufferLength, SOCKET& clientSocket)
+void PacketHandler::SendPacket(uint32_t packetId, char* &buffer, uint16_t &bufferLength, SOCKET& clientSocket)
 {
+	// Length of the packet contents itself
+	uint32_t packetLength = PacketTypes::getVarIntLength(packetId) + sizeof(char) * bufferLength;
+	// length of the packet-length prefix itself
+	uint32_t packetLengthLength = PacketTypes::getVarIntLength(packetLength);
+	// total packet length to be sent
+	uint32_t totalPacketLength = packetLength + packetLengthLength;
 
+	printf("Sending Data: %s", buffer);
+
+	char* sendBuffer = new char[totalPacketLength];
+	uint16_t sendBufferSize = 0;
+	ZeroMemory(sendBuffer, totalPacketLength);
+
+	// send packet length first
+	PacketTypes::writeVarInt(packetLength, sendBuffer, sendBufferSize);
+	// send packet id next
+	
+	PacketTypes::writeVarInt(packetId, sendBuffer, sendBufferSize);
+
+	// send packet buffer
+	for (uint32_t i = 0; i < bufferLength; i++)
+	{
+		//printf("Sending buffer index %d at original index %d (MAX: %d)\n", sendBufferSize, (1 + sendBufferSize), bufferLength);
+		sendBuffer[sendBufferSize] = buffer[sendBufferSize-2];
+		sendBufferSize++;
+	}
+
+	std::cout << "[Server -> Client] \n";
+	DumpHex(sendBuffer, sendBufferSize);
+
+	// dispatch
+	send(clientSocket, sendBuffer, sendBufferSize, 0x00);
+	// reset buffer for next outbound traffic
+	ZeroMemory(buffer, BUFFER_SIZE);
+	bufferLength = 0;
 }

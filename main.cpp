@@ -1,8 +1,9 @@
 #include <iostream>
 #include <WS2tcpip.h>
-#include "main.h";
+#include "main.h"
 #include "Config.h"
 #include "PacketHandler.h"
+#include "DumpHex.h"
 
 #pragma comment (lib, "ws2_32.lib")
 
@@ -96,7 +97,7 @@ int main(void*)
 
 		printf("[Client -> Server] \n");
 		DumpHex(buffer, BUFFER_SIZE);
-		PacketHandler::ReceivePacket(buffer, 0, &clientSocket);
+		PacketHandler::ReceivePacket(buffer, 0, clientSocket);
 
 		// Respond
 

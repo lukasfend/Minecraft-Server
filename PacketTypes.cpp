@@ -93,11 +93,39 @@ uint16_t PacketTypes::swapEndianness(uint16_t value)
 
 void PacketTypes::writeVarInt(int32_t value, char*& buffer, uint16_t& bufferSize)
 {
+	while (true)
+	{
+		if ((value & ~SEGMENT_BITS) == 0)
+		{
+			buffer[bufferSize++] = value;
+			return;
+		}
 
+		buffer[bufferSize++] = (value & SEGMENT_BITS) | CONTINUE_BIT;
+
+		value >>= 7;
+	}
+}
+
+uint32_t PacketTypes::getVarIntLength(int32_t value)
+{
+	uint32_t i = 0;
+	while (true) {
+		if ((value & ~SEGMENT_BITS) == 0)
+		{
+			i++;
+			return i;
+		}
+		value >>= 7;
+		i++;
+	}
 }
 
 void PacketTypes::writeString(char* value, uint16_t byteLength, char*& buffer, uint16_t& bufferSize)
 {
-
-	//send(clientSocket, value, byteLength, 0);
+	writeVarInt(byteLength, buffer, bufferSize);
+	for (uint16_t i = 0; i < byteLength; i++)
+	{
+		buffer[bufferSize++] = value[i];
+	}
 }

@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="DumpHex.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="PacketTypes.h" />
