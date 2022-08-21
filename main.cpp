@@ -1,9 +1,12 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <WS2tcpip.h>
 #include "main.h"
 #include "Config.h"
 #include "PacketHandler.h"
 #include "DumpHex.h"
+#include "Logger.h"
 
 #pragma comment (lib, "ws2_32.lib")
 
@@ -12,7 +15,7 @@ const unsigned short SERVER_PORT = 25565;
 
 int main(void*)
 {
-	std::cout << "[Minecraft Server] Starting up mcserver v1.18.2 by Lukas Fend" << std::endl;
+	Logger::printRaw("Starting up mcserver v1.18.2 by Lukas Fend", LOG_LEVEL::INFO);
 	// Initialize winsock
 	WSADATA wsData;
 	WORD version = MAKEWORD(2, 2);
@@ -20,7 +23,7 @@ int main(void*)
 	int wsOk = WSAStartup(version, &wsData);
 	if (wsOk != 0) 
 	{
-		std::cerr << "Failed initializing winsock" << std::endl;
+		Logger::printRaw("Failed initializing winsock", LOG_LEVEL::ERR);
 		return EXIT_FAILURE;
 	}
 
@@ -28,7 +31,7 @@ int main(void*)
 	SOCKET listening = socket(AF_INET, SOCK_STREAM, 0);
 	if (listening == INVALID_SOCKET) 
 	{
-		std::cerr << "Failed initializing socket." << std::endl;
+		Logger::printRaw("Failed initializing socket.", LOG_LEVEL::ERR);
 		return EXIT_FAILURE;
 	}
 
@@ -50,7 +53,7 @@ int main(void*)
 	SOCKET clientSocket = accept(listening, (sockaddr*)&client, &clientSize);
 	if (clientSocket == INVALID_SOCKET) 
 	{
-		std::cerr << "Error creating client socket." << std::endl;
+		Logger::printRaw("Error creating client socket.", LOG_LEVEL::ERR);
 		return EXIT_FAILURE;
 	}
 
@@ -63,7 +66,7 @@ int main(void*)
 
 	if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0x0)) 
 	{
-		std::cout << host << " connected on port " << service << std::endl;
+		Logger::printRaw("%s connected on port %s", LOG_LEVEL::INFO, host, service);
 	}
 	else 
 	{
@@ -86,7 +89,7 @@ int main(void*)
 		int bytesReceived = recv(clientSocket, (char*)buffer, BUFFER_SIZE, 0);
 		if (bytesReceived == SOCKET_ERROR)
 		{
-			std::cerr << "Error in recv(). Aborting..." << std::endl;
+			std::cerr << "Error in recv(). Aborting...(Error: "<< WSAGetLastError() << ")" << std::endl;
 			break;
 		}
 		if (bytesReceived == 0)
@@ -95,8 +98,8 @@ int main(void*)
 			break;
 		}
 
-		printf("[Client -> Server] \n");
-		DumpHex(buffer, BUFFER_SIZE);
+		/*printf("[Client -> Server] \n");
+		DumpHex(buffer, BUFFER_SIZE);*/
 		PacketHandler::ReceivePacket(buffer, 0, clientSocket);
 
 		// Respond

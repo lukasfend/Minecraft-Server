@@ -2,4 +2,4 @@
 #include <cstdint>
 
 #define byte char
-const uint16_t BUFFER_SIZE = 128;
+const uint16_t BUFFER_SIZE = 512;

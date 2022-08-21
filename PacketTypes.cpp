@@ -1,6 +1,8 @@
 #include "PacketTypes.h"
 #include <iostream>
 #include <intrin.h>
+#include "Config.h"
+#include "Logger.h"
 
 int32_t PacketTypes::readVarInt(uint8_t* buffer, uint16_t &offset)
 {
@@ -15,7 +17,7 @@ int32_t PacketTypes::readVarInt(uint8_t* buffer, uint16_t &offset)
 		position += 7;
 
 		if (position >= 32) {
-			std::cerr << "Error: VarInt is too big." << std::endl;
+			Logger::printRaw("Error: VarInt is too big.", LOG_LEVEL::ERR);
 		}
 	}
 
@@ -35,7 +37,7 @@ uint32_t PacketTypes::readVarUInt(uint8_t* buffer, uint16_t &offset)
 		position += 7;
 
 		if (position >= 32) {
-			std::cerr << "Error: VarInt is too big." << std::endl;
+			Logger::printRaw("Error: VarInt is too big.", LOG_LEVEL::ERR);
 		}
 	}
 
@@ -67,6 +69,19 @@ uint16_t PacketTypes::readUShort(uint8_t* buffer, uint16_t& offset)
 	uint16_t val = PacketTypes::swapEndianness((buffer[offset] << 8) | buffer[offset-1]);
 	offset++;
 	return val;
+}
+int64_t PacketTypes::readLong(uint8_t* buffer, uint16_t& offset)
+{
+	int64_t value = 0;
+	for (int i = 0; i < 8; i++) {
+		value <<= 8;
+		value |= buffer[offset++];
+	}
+	return value;
+}
+uint64_t PacketTypes::readULong(uint8_t* buffer, uint16_t& offset)
+{
+	return (uint64_t) PacketTypes::readLong(buffer, offset);
 }
 
 // TODO: well....
@@ -109,15 +124,19 @@ void PacketTypes::writeVarInt(int32_t value, char*& buffer, uint16_t& bufferSize
 
 uint32_t PacketTypes::getVarIntLength(int32_t value)
 {
-	uint32_t i = 0;
-	while (true) {
+	int32_t* virtualBuffer = new int32_t[BUFFER_SIZE];
+	uint16_t virtualBufferSize = 0;
+	while (true)
+	{
 		if ((value & ~SEGMENT_BITS) == 0)
 		{
-			i++;
-			return i;
+			virtualBuffer[virtualBufferSize++] = value;
+			return virtualBufferSize;
 		}
+
+		virtualBuffer[virtualBufferSize++] = (value & SEGMENT_BITS) | CONTINUE_BIT;
+
 		value >>= 7;
-		i++;
 	}
 }
 
