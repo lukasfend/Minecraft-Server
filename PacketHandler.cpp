@@ -74,10 +74,10 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clie
 							{"previewsChat", true},
 						};*/
 						// TODO send string
-						std::string json = "{\"description\":{\"text\":\"A Minecraft Server\"},\"players\":{\"max\":20,\"online\":0},\"version\":{\"name\":\"1.18.2\",\"protocol\":758}}";
+						std::string json = "{\"description\":{\"text\":\"A c++ Minecraft Server\"},\"players\":{\"max\":2147483647,\"online\":9999},\"version\":{\"name\":\"1.18.2\",\"protocol\":758}}";
 						char* jsonBuffer = const_cast<char*>(json.c_str());
 						const uint16_t jsonBufferLength = strlen(jsonBuffer);
-
+						printf("STRLEN=%d", jsonBufferLength);
 						char* stringBuffer = new char[jsonBufferLength];
 						uint16_t stringBufferSize = 0;
 						ZeroMemory(stringBuffer, jsonBufferLength);
@@ -103,6 +103,7 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clie
 
 void PacketHandler::SendPacket(uint32_t packetId, char* &buffer, uint16_t &bufferLength, SOCKET& clientSocket)
 {
+	// The function getVarIntLength might be wrong!
 	// Length of the packet contents itself
 	uint32_t packetLength = PacketTypes::getVarIntLength(packetId) + sizeof(char) * bufferLength;
 	// length of the packet-length prefix itself
@@ -126,7 +127,7 @@ void PacketHandler::SendPacket(uint32_t packetId, char* &buffer, uint16_t &buffe
 	for (uint32_t i = 0; i < bufferLength; i++)
 	{
 		//printf("Sending buffer index %d at original index %d (MAX: %d)\n", sendBufferSize, (1 + sendBufferSize), bufferLength);
-		sendBuffer[sendBufferSize] = buffer[sendBufferSize-2];
+		sendBuffer[sendBufferSize] = buffer[sendBufferSize-3];
 		sendBufferSize++;
 	}
 
