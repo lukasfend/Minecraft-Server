@@ -4,12 +4,17 @@
 class PacketTypes
 {
 public:
-	static const int SEGMENT_BITS = 0x7F;
-	static const int CONTINUE_BIT = 0x80;
+	static const uint8_t SEGMENT_BITS = 0b01111111;
+	static const uint8_t CONTINUE_BIT = 0b10000000;
 
 	static int32_t readVarInt(uint8_t* buffer, uint16_t &offset);
-	static int32_t readVarUInt(uint8_t* buffer, uint16_t &offset);
+	static uint32_t readVarUInt(uint8_t* buffer, uint16_t &offset);
 	static int64_t readVarLong(uint8_t* buffer, uint16_t &offset);
-	static int64_t readVarULong(uint8_t* buffer, uint16_t &offset);
+	static uint64_t readVarULong(uint8_t* buffer, uint16_t &offset);
+	static char* readString(uint8_t* buffer, uint16_t &offset);
+	static int16_t readShort(uint8_t* buffer, uint16_t& offset);
+	static uint16_t readUShort(uint8_t* buffer, uint16_t &offset);
+
+	static uint16_t swapEndianness(uint16_t value);
 };
 

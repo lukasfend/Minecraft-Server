@@ -1,9 +1,6 @@
 #include <stdio.h>
 
 #pragma once
-const int SERVER_PORT = 25565;
-const int BUFFER_SIZE = 64;;
-#define byte char
 
 void DumpHex(const void* data, size_t size) {
 	printf("\t");

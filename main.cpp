@@ -1,12 +1,13 @@
 #include <iostream>
 #include <WS2tcpip.h>
 #include "main.h";
+#include "Config.h"
 #include "PacketHandler.h"
 
 #pragma comment (lib, "ws2_32.lib")
 
 //using namespace std;
-
+const unsigned short SERVER_PORT = 25565;
 
 int main(void*)
 {
@@ -55,6 +56,7 @@ int main(void*)
 	char host[NI_MAXHOST];		// Client's remote name
 	char service[NI_MAXSERV];	// Service port
 
+
 	ZeroMemory(host, NI_MAXHOST);
 	ZeroMemory(service, NI_MAXSERV);
 
@@ -80,7 +82,7 @@ int main(void*)
 		ZeroMemory(buffer, BUFFER_SIZE);
 
 		// Wait for data from client
-		int bytesReceived = recv(clientSocket, (char)buffer, BUFFER_SIZE, 0);
+		int bytesReceived = recv(clientSocket, (char*)buffer, BUFFER_SIZE, 0);
 		if (bytesReceived == SOCKET_ERROR)
 		{
 			std::cerr << "Error in recv(). Aborting..." << std::endl;
@@ -94,7 +96,7 @@ int main(void*)
 
 		printf("[Client -> Server] \n");
 		DumpHex(buffer, BUFFER_SIZE);
-		PacketHandler::ReceivePacket((char)buffer);
+		PacketHandler::ReceivePacket(buffer, 0);
 
 		// Echo message back to client
 		//send(clientSocket, buffer, bytesReceived + 1, 0);
