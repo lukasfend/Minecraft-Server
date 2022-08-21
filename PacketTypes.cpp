@@ -90,3 +90,14 @@ uint16_t PacketTypes::swapEndianness(uint16_t value)
 		(value >> 8 & 0b0000000000000010) |
 		(value >> 8 & 0b0000000000000001);
 }
+
+void PacketTypes::writeVarInt(int32_t value, char*& buffer, uint16_t& bufferSize)
+{
+
+}
+
+void PacketTypes::writeString(char* value, uint16_t byteLength, char*& buffer, uint16_t& bufferSize)
+{
+
+	//send(clientSocket, value, byteLength, 0);
+}

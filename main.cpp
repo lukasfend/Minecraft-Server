@@ -96,10 +96,12 @@ int main(void*)
 
 		printf("[Client -> Server] \n");
 		DumpHex(buffer, BUFFER_SIZE);
-		PacketHandler::ReceivePacket(buffer, 0);
+		PacketHandler::ReceivePacket(buffer, 0, &clientSocket);
+
+		// Respond
 
 		// Echo message back to client
-		//send(clientSocket, buffer, bytesReceived + 1, 0);
+		//send(clientSocket, (const char*)_responseBuffer, _responseBufferSize, 0);
 	}
 	
 	// Close socket

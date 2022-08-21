@@ -3,12 +3,19 @@
 #include "PacketTypes.h"
 #include "Config.h"
 #include <iostream>
+#include <nlohmann/json.hpp>
 
-void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset)
+using json = nlohmann::json;
+
+
+void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset, SOCKET& clientSocket)
 {
 	std::cout << "Reading new Packet..." << std::endl;
 
 	uint8_t state = 0;
+	char* responseBuffer[BUFFER_SIZE];
+	ZeroMemory(responseBuffer, BUFFER_SIZE);
+	uint16_t responseBufferSize = 0;
 
 	int bufferSize = BUFFER_SIZE;
 	while (offset < bufferSize)
@@ -43,11 +50,30 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset)
 		}
 		else if (state == 1)
 		{
-			switch (packetId)
+			switch(packetId)
 			{
 				case 0x00:
-					// TODO send string
-					break;
+					{
+						json response = {
+							{"version", {
+								{"name", "1.18.2"},
+								{"protocol", 758},
+
+							}},
+							{"players", {
+								{"max", 128},
+								{"online", 123},
+								{"sample", {} },
+							}},
+							{"description", {
+								{"text", "Hello!"},
+							}},
+							{"favicon", "data:image/png;base64;iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAYklEQVR42u3QAQ0AAAgDIN8/9M3hhAhk2s5jESBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAu5bgEm/gfv5CP0AAAAASUVORK5CYII="},
+							{"previewsChat", true},
+						};	
+						// TODO send string
+						break;
+					}
 				default:
 					offset += packetLength - 1;
 					break;
@@ -58,6 +84,11 @@ void PacketHandler::ReceivePacket(uint8_t* buffer, uint16_t offset)
 			break;
 		}
 
-		PacketHandler::ReceivePacket(buffer, offset);
+		PacketHandler::ReceivePacket(buffer, offset, clientSocket);
 	}
+}
+
+void PacketHandler::SendPacket(char* buffer, uint16_t bufferLength, SOCKET& clientSocket)
+{
+
 }
